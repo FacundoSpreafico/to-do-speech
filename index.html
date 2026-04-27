@@ -10,26 +10,28 @@
     <main class="app">
       <header class="header">
         <h1>To-Do por Voz</h1>
-        <p>Di: <strong>fecha - tarea</strong> (ej: "mañana - pagar luz").</p>
+        <p>Agendá rápido con texto o voz en formato <strong>fecha - tarea</strong>.</p>
       </header>
 
       <section class="panel">
         <form id="task-form" class="task-form">
-          <label>
+          <label class="field">
             Fecha
             <input id="date-input" type="date" required />
           </label>
-          <label>
+          <label class="field">
             Tarea
             <input id="task-input" type="text" placeholder="Ej: Pagar luz" required />
           </label>
-          <button type="submit">Agregar tarea</button>
+          <div class="form-actions">
+            <button id="add-btn" type="submit" class="add-btn">Agregar</button>
+            <button id="voice-btn" type="button" class="voice-btn" aria-label="Agregar por voz">
+              🎤
+            </button>
+          </div>
         </form>
-
-        <div class="voice-actions">
-          <button id="voice-btn" type="button">🎤 Hablar</button>
-          <p id="voice-status" class="voice-status">Listo para escuchar.</p>
-        </div>
+        <p id="voice-status" class="voice-status">Tip: “mañana - pagar luz”.</p>
+        <p id="app-status" class="app-status" aria-live="polite"></p>
       </section>
 
       <section class="panel">
@@ -45,7 +47,7 @@
             </thead>
             <tbody id="task-grid"></tbody>
           </table>
-          <p id="empty-state" class="empty-state">Todavía no hay tareas.</p>
+          <p id="empty-state" class="empty-state">Todavía no hay tareas cargadas.</p>
         </div>
       </section>
     </main>

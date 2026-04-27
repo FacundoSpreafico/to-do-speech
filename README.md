@@ -1,44 +1,49 @@
-# To-Do por voz (MVP)
+# To-Do por voz
 
-App web responsive (sin autenticación) para agendar tareas por voz en formato **fecha - tarea** y verlas en una grilla ordenada por fecha.
+App web responsive para celular, sin autenticación, con carga manual o por voz y persistencia en base de datos.
 
 ## Stack
 
-- HTML + CSS + JavaScript vanilla
-- Web Speech API (reconocimiento de voz en navegador)
-- localStorage (persistencia local en el celular/PC)
+- HTML + CSS + JavaScript (frontend)
+- Web Speech API (captura de voz)
+- Vercel Serverless Function (`/api/tasks`)
+- Vercel Postgres (persistencia de tareas)
 
-## Uso
+## UX implementada
 
-1. Abrí `index.html` en el navegador (ideal: Chrome móvil).
-2. Tocá **Hablar** y decí algo como:
-   - `mañana - pagar luz`
-   - `30/04 - turno médico`
-   - `2026-05-12 - enviar informe`
-3. La tarea se agrega automáticamente y queda ordenada por fecha.
+- Formulario simple con foco en móvil.
+- Botón **Agregar** y botón de **micrófono chico al lado**.
+- Estado visible de carga/errores.
+- Grilla ordenada por fecha ascendente.
 
-También podés cargar tareas manualmente con el formulario.
+## Formato de voz
 
-## Notas de compatibilidad
+Usá comandos como:
 
-- El reconocimiento de voz depende del navegador/dispositivo.
-- En algunos navegadores móviles requiere HTTPS (o localhost).
+- `mañana - pagar luz`
+- `30/04 - turno médico`
+- `2026-05-12 - enviar informe`
 
-## ¿Es plausible sumar AI para interpretar voz?
+## Ejecutar local
 
-Sí, totalmente plausible y útil para frases más naturales.
+1. Instalar dependencias:
+   `npm install`
+2. Correr entorno local de Vercel:
+   `npm run dev`
 
-### Opción simple recomendada (híbrida)
+> Para que la API funcione local y en producción, tenés que tener configurada la base de datos de Vercel Postgres en tu proyecto (variables de entorno incluidas por Vercel).
 
-- **Paso 1 (actual):** parser local por reglas para comandos claros `fecha - tarea`.
-- **Paso 2 (AI opcional):** cuando el parser local falla, enviar el texto transcripto a un endpoint backend muy chico (por ejemplo Node/Express o serverless) que use un LLM y devuelva JSON:
+## Deploy
+
+```bash
+npx vercel --yes
+npx vercel --prod --yes
+```
+
+## AI opcional (recomendación)
+
+Mantener parser local para `fecha - tarea` y agregar fallback a LLM solo cuando no pueda interpretar la frase. El LLM debería devolver JSON estructurado:
 
 ```json
 { "date": "2026-05-02", "task": "pagar luz" }
 ```
-
-### Por qué así
-
-- Mantenés el MVP rápido y barato.
-- No exponés la API key del modelo en el frontend.
-- Tenés fallback robusto: regla local + AI solo cuando haga falta.

@@ -5,44 +5,85 @@ const grid = document.getElementById("task-grid");
 const emptyState = document.getElementById("empty-state");
 const voiceBtn = document.getElementById("voice-btn");
 const voiceStatus = document.getElementById("voice-status");
+const appStatus = document.getElementById("app-status");
+const addBtn = document.getElementById("add-btn");
 
-const STORAGE_KEY = "voice-todo-items";
+const API_URL = "/api/tasks";
 const todayIso = toIsoDate(new Date());
 dateInput.value = todayIso;
 
-let tasks = loadTasks();
-render();
+let tasks = [];
+let busy = false;
+bootstrap();
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  addTask(dateInput.value, taskInput.value.trim());
+  createTask(dateInput.value, taskInput.value.trim());
 });
 
 voiceBtn.addEventListener("click", () => {
   startVoiceInput();
 });
 
-function addTask(date, taskText) {
-  if (!date || !taskText) return;
-
-  tasks.push({
-    id: createId(),
-    date,
-    task: taskText,
-    createdAt: new Date().toISOString(),
-  });
-
-  sortTasks();
-  persistTasks();
+async function bootstrap() {
+  await loadTasks();
   render();
-  taskInput.value = "";
-  dateInput.value = date;
 }
 
-function removeTask(id) {
-  tasks = tasks.filter((task) => task.id !== id);
-  persistTasks();
-  render();
+async function createTask(date, taskText) {
+  if (!date || !taskText) return;
+
+  try {
+    setBusy(true);
+    setAppStatus("Guardando tarea...");
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, task: taskText }),
+    });
+
+    if (!response.ok) {
+      setAppStatus("No se pudo guardar la tarea.", true);
+      return;
+    }
+
+    const data = await response.json();
+    tasks.push(data.task);
+    sortTasks();
+    render();
+    taskInput.value = "";
+    dateInput.value = date;
+    setAppStatus("Tarea guardada.");
+  } catch (error) {
+    console.error("Error al guardar tarea:", error);
+    setAppStatus("No se pudo guardar la tarea.", true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function removeTask(id) {
+  try {
+    setBusy(true);
+    const response = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      setAppStatus("No se pudo eliminar la tarea.", true);
+      return;
+    }
+
+    tasks = tasks.filter((task) => task.id !== id);
+    render();
+    setAppStatus("Tarea eliminada.");
+  } catch (error) {
+    console.error("Error al eliminar tarea:", error);
+    setAppStatus("No se pudo eliminar la tarea.", true);
+  } finally {
+    setBusy(false);
+  }
 }
 
 function render() {
@@ -77,21 +118,25 @@ function render() {
   }
 }
 
-function persistTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
-
-function loadTasks() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-
+async function loadTasks() {
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    setBusy(true);
+    setAppStatus("Cargando tareas...");
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      setAppStatus("No se pudo conectar con la base de datos.", true);
+      return;
+    }
+
+    const data = await response.json();
+    tasks = Array.isArray(data.tasks) ? data.tasks : [];
+    setAppStatus("");
   } catch (error) {
-    console.error("No se pudo leer el almacenamiento local:", error);
-    localStorage.removeItem(STORAGE_KEY);
-    return [];
+    console.error("Error al cargar tareas:", error);
+    setAppStatus("No se pudo conectar con la base de datos.", true);
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -130,7 +175,7 @@ function startVoiceInput() {
       return;
     }
 
-    addTask(parsed.dateIso, parsed.taskText);
+    createTask(parsed.dateIso, parsed.taskText);
     voiceStatus.textContent = `Agregado: ${formatDate(parsed.dateIso)} - ${parsed.taskText}`;
   };
 
@@ -139,7 +184,7 @@ function startVoiceInput() {
   };
 
   recognition.onend = () => {
-    voiceBtn.disabled = false;
+    voiceBtn.disabled = busy;
   };
 
   recognition.start();
@@ -256,9 +301,13 @@ function normalize(text) {
     .trim();
 }
 
-function createId() {
-  if (window.crypto && typeof window.crypto.randomUUID === "function") {
-    return window.crypto.randomUUID();
-  }
-  return `task-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+function setBusy(isBusy) {
+  busy = isBusy;
+  addBtn.disabled = isBusy;
+  voiceBtn.disabled = isBusy;
+}
+
+function setAppStatus(message, isError = false) {
+  appStatus.textContent = message;
+  appStatus.style.color = isError ? "var(--danger)" : "var(--ok)";
 }
