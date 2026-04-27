@@ -14,9 +14,13 @@ async function ensureTable() {
       id TEXT PRIMARY KEY,
       date DATE NOT NULL,
       task TEXT NOT NULL,
+      completed BOOLEAN NOT NULL DEFAULT FALSE,
+      completed_at TIMESTAMP NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
   `;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE;`;
+  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP NULL;`;
 }
 
 export default async function handler(req, res) {
@@ -25,9 +29,15 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
       const rows = await sql`
-        SELECT id, date::text AS date, task, created_at::text AS "createdAt"
+        SELECT
+          id,
+          date::text AS date,
+          task,
+          completed,
+          completed_at::text AS "completedAt",
+          created_at::text AS "createdAt"
         FROM tasks
-        ORDER BY date ASC, created_at ASC
+        ORDER BY completed ASC, date ASC, created_at ASC
       `;
       return res.status(200).json({ tasks: rows });
     }
@@ -41,12 +51,44 @@ export default async function handler(req, res) {
 
       const id = createId();
       const rows = await sql`
-        INSERT INTO tasks (id, date, task)
-        VALUES (${id}, ${date}, ${cleanTask})
-        RETURNING id, date::text AS date, task, created_at::text AS "createdAt"
+        INSERT INTO tasks (id, date, task, completed, completed_at)
+        VALUES (${id}, ${date}, ${cleanTask}, FALSE, NULL)
+        RETURNING
+          id,
+          date::text AS date,
+          task,
+          completed,
+          completed_at::text AS "completedAt",
+          created_at::text AS "createdAt"
       `;
 
       return res.status(201).json({ task: rows[0] });
+    }
+
+    if (req.method === "PATCH") {
+      const id = typeof req.body?.id === "string" ? req.body.id.trim() : "";
+      const completed = req.body?.completed;
+      if (!id || typeof completed !== "boolean") {
+        return res.status(400).json({ error: "Body invalido." });
+      }
+
+      const rows = await sql`
+        UPDATE tasks
+        SET
+          completed = ${completed},
+          completed_at = CASE WHEN ${completed} THEN NOW() ELSE NULL END
+        WHERE id = ${id}
+        RETURNING
+          id,
+          date::text AS date,
+          task,
+          completed,
+          completed_at::text AS "completedAt",
+          created_at::text AS "createdAt"
+      `;
+
+      if (!rows.length) return res.status(404).json({ error: "No existe la tarea." });
+      return res.status(200).json({ task: rows[0] });
     }
 
     if (req.method === "DELETE") {

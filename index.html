@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>To-Do por Voz</title>
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon.svg" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -35,19 +39,38 @@
       </section>
 
       <section class="panel">
-        <h2>Agenda</h2>
+        <h2>Pendientes</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
+                <th></th>
                 <th>Fecha</th>
                 <th>Tarea</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody id="task-grid"></tbody>
+            <tbody id="pending-grid"></tbody>
           </table>
-          <p id="empty-state" class="empty-state">Todavía no hay tareas cargadas.</p>
+          <p id="pending-empty-state" class="empty-state">No hay tareas pendientes.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Hechas</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Fecha</th>
+                <th>Tarea</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="completed-grid"></tbody>
+          </table>
+          <p id="completed-empty-state" class="empty-state">Todavía no completaste tareas.</p>
         </div>
       </section>
     </main>

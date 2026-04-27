@@ -142,10 +142,27 @@ td {
   text-align: left;
   padding: 12px 8px;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
 td:last-child {
   text-align: right;
+}
+
+th:first-child,
+td:first-child {
+  width: 40px;
+}
+
+.check-input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+}
+
+.task-text-completed {
+  color: #6b7280;
+  text-decoration: line-through;
 }
 
 .delete-btn {
