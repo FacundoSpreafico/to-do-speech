@@ -11,12 +11,12 @@ App web responsive para celular, sin autenticación, con carga manual o por voz 
 
 ## UX implementada
 
-- Formulario simple con foco en móvil.
-- Botón **Agregar** y botón de **micrófono chico al lado**.
-- Estado visible de carga/errores.
-- Sección **Pendientes** y sección **Hechas** (tachadas).
-- Check para marcar/desmarcar tareas realizadas.
-- Grillas ordenadas por fecha ascendente.
+- UI renovada enfocada en móvil, limpia y legible.
+- Cambio de contexto rápido entre **Estudio** y **Trabajo**.
+- Modo claro/oscuro con toggle.
+- Lista de pendientes + lista de hechas (tachadas), con check de completado.
+- Botón de micrófono junto a agregar y estados de feedback claros.
+- Botón para mover tareas entre Estudio y Trabajo en un toque.
 
 ## PWA mobile
 
@@ -32,6 +32,7 @@ Usá comandos como:
 - `30/04 - turno médico`
 - `2026-05-12 - enviar informe`
 - `4 de abril de 2026 tengo parcial 1` (se guarda como `04/04/2026 parcial 1`)
+- `mañana tengo que hacer guía 4`
 
 ## Ejecutar local
 
@@ -55,5 +56,5 @@ npx vercel --prod --yes
 - API serverless en `api/tasks.js` con:
   - `GET /api/tasks`
   - `POST /api/tasks`
-  - `PATCH /api/tasks` (marcar hecha/no hecha)
+  - `PATCH /api/tasks` (marcar hecha/no hecha y mover de categoría)
   - `DELETE /api/tasks?id=...`

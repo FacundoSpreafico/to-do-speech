@@ -4,74 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>To-Do por Voz</title>
-    <meta name="theme-color" content="#4f46e5" />
+    <meta name="theme-color" content="#4c5df4" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app">
-      <header class="header">
-        <h1>To-Do por Voz</h1>
-        <p>Agendá rápido con texto o voz en formato <strong>fecha - tarea</strong>.</p>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Planificador personal</p>
+          <h1>Mi Agenda por Voz</h1>
+        </div>
+        <button id="theme-toggle" class="ghost-btn" type="button" aria-label="Cambiar tema">☀️</button>
       </header>
 
-      <section class="panel">
+      <section class="context-tabs" aria-label="Contexto de tareas">
+        <button id="tab-estudio" class="tab is-active" type="button" data-category="estudio">
+          Estudio
+        </button>
+        <button id="tab-trabajo" class="tab" type="button" data-category="trabajo">Trabajo</button>
+      </section>
+
+      <section class="composer">
         <form id="task-form" class="task-form">
           <label class="field">
             Fecha
             <input id="date-input" type="date" required />
           </label>
-          <label class="field">
+          <label class="field task-field">
             Tarea
-            <input id="task-input" type="text" placeholder="Ej: Pagar luz" required />
+            <input
+              id="task-input"
+              type="text"
+              placeholder="Ej: 4 de abril de 2026 tengo parcial 1"
+              required
+            />
           </label>
-          <div class="form-actions">
-            <button id="add-btn" type="submit" class="add-btn">Agregar</button>
-            <button id="voice-btn" type="button" class="voice-btn" aria-label="Agregar por voz">
-              🎤
-            </button>
+          <div class="action-row">
+            <button id="add-btn" type="submit" class="primary-btn">Agregar</button>
+            <button id="voice-btn" type="button" class="ghost-btn" aria-label="Agregar por voz">🎤</button>
           </div>
         </form>
-        <p id="voice-status" class="voice-status">Tip: “mañana - pagar luz”.</p>
-        <p id="app-status" class="app-status" aria-live="polite"></p>
+        <p id="voice-status" class="hint">Decí: “mañana tengo que hacer guía 4”.</p>
+        <p id="app-status" class="status" aria-live="polite"></p>
       </section>
 
-      <section class="panel">
-        <h2>Pendientes</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Fecha</th>
-                <th>Tarea</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="pending-grid"></tbody>
-          </table>
-          <p id="pending-empty-state" class="empty-state">No hay tareas pendientes.</p>
+      <section class="board">
+        <div class="board-head">
+          <h2 id="pending-title">Pendientes</h2>
+          <p id="pending-counter" class="counter">0</p>
         </div>
+        <ul id="pending-list" class="task-list"></ul>
+        <p id="pending-empty" class="empty-state">No hay pendientes en este contexto.</p>
       </section>
 
-      <section class="panel">
-        <h2>Hechas</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Fecha</th>
-                <th>Tarea</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="completed-grid"></tbody>
-          </table>
-          <p id="completed-empty-state" class="empty-state">Todavía no completaste tareas.</p>
+      <section class="board board-muted">
+        <div class="board-head">
+          <h2>Hechas</h2>
+          <p id="completed-counter" class="counter">0</p>
         </div>
+        <ul id="completed-list" class="task-list"></ul>
+        <p id="completed-empty" class="empty-state">Todavía no completaste tareas acá.</p>
       </section>
     </main>
 
