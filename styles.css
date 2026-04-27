@@ -1,0 +1,128 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --brand: #2563eb;
+  --brand-dark: #1d4ed8;
+  --danger: #dc2626;
+  --border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.task-form {
+  display: grid;
+  gap: 12px;
+}
+
+.task-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+input,
+button {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+}
+
+button:hover {
+  background: var(--brand-dark);
+}
+
+.voice-actions {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.voice-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+td:last-child {
+  text-align: right;
+}
+
+.delete-btn {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.empty-state {
+  margin: 12px 0 4px;
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .task-form {
+    grid-template-columns: 1fr 2fr auto;
+    align-items: end;
+  }
+}
