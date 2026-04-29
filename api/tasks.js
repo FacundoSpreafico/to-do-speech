@@ -7,23 +7,34 @@ if (!connectionString) {
 }
 
 const sql = neon(connectionString);
+let tableReadyPromise = null;
 
 async function ensureTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id TEXT PRIMARY KEY,
-      date DATE NOT NULL,
-      task TEXT NOT NULL,
-      category TEXT NOT NULL DEFAULT 'estudio',
-      completed BOOLEAN NOT NULL DEFAULT FALSE,
-      completed_at TIMESTAMP NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT NOW()
-    );
-  `;
-  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'estudio';`;
-  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE;`;
-  await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP NULL;`;
-  await sql`UPDATE tasks SET category = 'estudio' WHERE category IS NULL;`;
+  if (tableReadyPromise) return tableReadyPromise;
+
+  tableReadyPromise = (async () => {
+    await sql`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        date DATE NOT NULL,
+        task TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'estudio',
+        completed BOOLEAN NOT NULL DEFAULT FALSE,
+        completed_at TIMESTAMP NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `;
+    await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'estudio';`;
+    await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE;`;
+    await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP NULL;`;
+    await sql`UPDATE tasks SET category = 'estudio' WHERE category IS NULL;`;
+    await sql`
+      CREATE INDEX IF NOT EXISTS tasks_category_completed_date_created_idx
+      ON tasks (category, completed, date, created_at);
+    `;
+  })();
+
+  return tableReadyPromise;
 }
 
 export default async function handler(req, res) {

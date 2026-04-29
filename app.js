@@ -14,11 +14,18 @@ const completedCounter = document.getElementById("completed-counter");
 const pendingTitle = document.getElementById("pending-title");
 const themeToggle = document.getElementById("theme-toggle");
 const categoryTabs = Array.from(document.querySelectorAll(".tab"));
+const quickDateButtons = Array.from(document.querySelectorAll(".quick-date-btn"));
 
 const API_URL = "/api/tasks";
 const THEME_KEY = "todo-theme";
+const TASKS_CACHE_KEY = "todo-tasks-cache-v1";
 const CATEGORIES = ["estudio", "trabajo"];
 const CATEGORY_LABELS = { estudio: "Estudio", trabajo: "Trabajo" };
+const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 const todayIso = toIsoDate(new Date());
 
 let tasks = [];
@@ -47,11 +54,23 @@ for (const tab of categoryTabs) {
     render();
   });
 }
+for (const quickBtn of quickDateButtons) {
+  quickBtn.addEventListener("click", () => {
+    const offset = Number.parseInt(quickBtn.dataset.offset || "0", 10);
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+    base.setDate(base.getDate() + offset);
+    dateInput.value = toIsoDate(base);
+    taskInput.focus();
+  });
+}
 
 async function bootstrap() {
   registerServiceWorker();
   applyStoredTheme();
   updateCategoryUI();
+  hydrateTasksFromCache();
+  render();
   await loadTasks();
   render();
 }
@@ -76,8 +95,10 @@ async function createTask(date, taskText, category) {
     const data = await response.json();
     tasks.push(data.task);
     sortTasks();
+    persistTasksCache();
     taskInput.value = "";
     dateInput.value = date;
+    taskInput.focus();
     render();
     setAppStatus("Tarea guardada.");
   } catch (error) {
@@ -105,6 +126,7 @@ async function updateTask(id, patch) {
     const data = await response.json();
     tasks = tasks.map((task) => (task.id === data.task.id ? data.task : task));
     sortTasks();
+    persistTasksCache();
     render();
   } catch (error) {
     console.error("Error al actualizar tarea:", error);
@@ -136,6 +158,7 @@ async function removeTask(id) {
     }
 
     tasks = tasks.filter((task) => task.id !== id);
+    persistTasksCache();
     render();
     setAppStatus("Tarea eliminada.");
   } catch (error) {
@@ -158,6 +181,7 @@ async function loadTasks() {
     const data = await response.json();
     tasks = Array.isArray(data.tasks) ? data.tasks : [];
     sortTasks();
+    persistTasksCache();
     setAppStatus("");
   } catch (error) {
     console.error("Error al cargar tareas:", error);
@@ -168,8 +192,8 @@ async function loadTasks() {
 }
 
 function render() {
-  pendingList.innerHTML = "";
-  completedList.innerHTML = "";
+  pendingList.textContent = "";
+  completedList.textContent = "";
 
   const today = toIsoDate(new Date());
   const visible = tasks.filter(
@@ -183,8 +207,12 @@ function render() {
   pendingEmpty.hidden = pending.length > 0;
   completedEmpty.hidden = completed.length > 0;
 
-  for (const task of pending) pendingList.appendChild(buildTaskItem(task));
-  for (const task of completed) completedList.appendChild(buildTaskItem(task));
+  const pendingFragment = document.createDocumentFragment();
+  const completedFragment = document.createDocumentFragment();
+  for (const task of pending) pendingFragment.appendChild(buildTaskItem(task));
+  for (const task of completed) completedFragment.appendChild(buildTaskItem(task));
+  pendingList.appendChild(pendingFragment);
+  completedList.appendChild(completedFragment);
 }
 
 function buildTaskItem(task) {
@@ -474,11 +502,7 @@ function toIsoDate(date) {
 
 function formatDate(dateIso) {
   const date = new Date(`${dateIso}T00:00:00`);
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
+  return DATE_FORMATTER.format(date);
 }
 
 function normalize(text) {
@@ -523,9 +547,31 @@ function setBusy(isBusy) {
   busy = isBusy;
   addBtn.disabled = isBusy;
   voiceBtn.disabled = isBusy;
+  for (const quickBtn of quickDateButtons) quickBtn.disabled = isBusy;
 }
 
 function setAppStatus(message, isError = false) {
   appStatus.textContent = message;
   appStatus.style.color = isError ? "var(--danger)" : "var(--ok)";
+}
+
+function hydrateTasksFromCache() {
+  try {
+    const raw = localStorage.getItem(TASKS_CACHE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    tasks = parsed;
+    sortTasks();
+  } catch (error) {
+    console.error("No se pudo leer cache local de tareas:", error);
+  }
+}
+
+function persistTasksCache() {
+  try {
+    localStorage.setItem(TASKS_CACHE_KEY, JSON.stringify(tasks));
+  } catch (error) {
+    console.error("No se pudo guardar cache local de tareas:", error);
+  }
 }

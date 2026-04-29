@@ -39,12 +39,17 @@
             Fecha
             <input id="date-input" type="date" required />
           </label>
+          <div class="quick-date-row" aria-label="Atajos de fecha">
+            <button type="button" class="quick-date-btn" data-offset="0">Hoy</button>
+            <button type="button" class="quick-date-btn" data-offset="1">Mañana</button>
+          </div>
           <label class="field task-field">
             Tarea
             <input
               id="task-input"
               type="text"
               placeholder="Ej: 4 de abril de 2026 tengo parcial 1"
+              autocomplete="off"
               required
             />
           </label>
