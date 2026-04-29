@@ -120,7 +120,7 @@ async function updateTask(id, patch) {
 
     if (!response.ok) {
       setAppStatus("No se pudo actualizar la tarea.", true);
-      return;
+      return null;
     }
 
     const data = await response.json();
@@ -128,22 +128,26 @@ async function updateTask(id, patch) {
     sortTasks();
     persistTasksCache();
     render();
+    return data.task;
   } catch (error) {
     console.error("Error al actualizar tarea:", error);
     setAppStatus("No se pudo actualizar la tarea.", true);
+    return null;
   } finally {
     setBusy(false);
   }
 }
 
 async function toggleTaskCompleted(id, completed) {
-  await updateTask(id, { completed });
+  const updatedTask = await updateTask(id, { completed });
+  if (!updatedTask) return;
   setAppStatus(completed ? "Pasó a hechas." : "Volvió a pendientes.");
 }
 
 async function toggleTaskCategory(task) {
   const nextCategory = task.category === "estudio" ? "trabajo" : "estudio";
-  await updateTask(task.id, { category: nextCategory });
+  const updatedTask = await updateTask(task.id, { category: nextCategory });
+  if (!updatedTask) return;
   setAppStatus(`Movida a ${CATEGORY_LABELS[nextCategory]}.`);
 }
 

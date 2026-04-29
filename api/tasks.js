@@ -40,6 +40,7 @@ async function ensureTable() {
 export default async function handler(req, res) {
   try {
     await ensureTable();
+    const body = getRequestBody(req);
 
     if (req.method === "GET") {
       const rows = await sql`
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const { date, task, category } = req.body || {};
+      const { date, task, category } = body;
       const cleanTask = typeof task === "string" ? task.trim() : "";
       const cleanCategory = normalizeCategory(category);
       if (!isIsoDate(date) || !cleanTask || !cleanCategory) {
@@ -83,10 +84,10 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "PATCH") {
-      const id = typeof req.body?.id === "string" ? req.body.id.trim() : "";
-      const completed = req.body?.completed;
-      const category = normalizeCategory(req.body?.category);
-      const hasCompleted = typeof completed === "boolean";
+      const id = typeof body?.id === "string" ? body.id.trim() : "";
+      const completed = normalizeCompleted(body?.completed);
+      const category = normalizeCategory(body?.category);
+      const hasCompleted = completed !== null;
       const hasCategory = Boolean(category);
       if (!id || (!hasCompleted && !hasCategory)) {
         return res.status(400).json({ error: "Body invalido." });
@@ -158,4 +159,22 @@ function normalizeCategory(value) {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
   return normalized === "estudio" || normalized === "trabajo" ? normalized : null;
+}
+
+function getRequestBody(req) {
+  if (req?.body && typeof req.body === "object") return req.body;
+  if (typeof req?.body !== "string") return {};
+  try {
+    const parsed = JSON.parse(req.body);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function normalizeCompleted(value) {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
 }
