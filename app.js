@@ -171,7 +171,10 @@ function render() {
   pendingList.innerHTML = "";
   completedList.innerHTML = "";
 
-  const visible = tasks.filter((task) => task.category === activeCategory);
+  const today = toIsoDate(new Date());
+  const visible = tasks.filter(
+    (task) => task.category === activeCategory && String(task.date || "") >= today,
+  );
   const pending = visible.filter((task) => !task.completed);
   const completed = visible.filter((task) => task.completed);
 
